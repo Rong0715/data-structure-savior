@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CSE 100 Lecture Q&A</title>
+    <title>Data Structures Savior</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
       rel="stylesheet"
@@ -343,37 +343,11 @@
       ></iframe>
     </div>
 
-    <!-- API Key Modal -->
-    <div id="apiKeyModal" class="modal">
-      <div class="modal-content">
-        <h2>OpenAI API Key Required</h2>
-        <p>
-          Please enter your OpenAI API key to use this application. Your key
-          will be stored locally.
-        </p>
-        <input
-          type="password"
-          id="apiKeyInput"
-          placeholder="Enter your OpenAI API key"
-        />
-        <button onclick="submitApiKey()" class="submit-btn">Submit</button>
-      </div>
-    </div>
-
     <script>
       // Add this at the beginning of your script section
       const API_BASE_URL = window.location.hostname === 'localhost' 
           ? 'http://localhost:5000'
           : 'https://datastructuresavior.onrender.com'; // You'll need to update this with your actual Render URL
-
-      // Add these functions to handle API key storage
-      function saveApiKey(apiKey) {
-          localStorage.setItem('openai_api_key', apiKey);
-      }
-
-      function getApiKey() {
-          return localStorage.getItem('openai_api_key');
-      }
 
       // Function to handle Q&A search
       async function askQuestion() {
@@ -407,17 +381,10 @@
           // Activate first step
           updateProgress(1);
 
-          const apiKey = getApiKey();
-          if (!apiKey) {
-            document.getElementById("apiKeyModal").style.display = "block";
-            return;
-          }
-
           const response = await fetch(`${API_BASE_URL}/api/ask`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-API-Key": apiKey
             },
             body: JSON.stringify({
               question,
@@ -617,68 +584,7 @@
         });
       }
 
-      // Update submitApiKey function
-      async function submitApiKey() {
-        const apiKey = document.getElementById("apiKeyInput").value.trim();
-        const submitBtn = document.querySelector(".submit-btn");
-
-        if (!apiKey) {
-            showError("Please enter an API key");
-            return;
-        }
-
-        try {
-            // Show loading state
-            submitBtn.disabled = true;
-            
-            const response = await fetch(`${API_BASE_URL}/api/submit-key`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ api_key: apiKey }),
-            });
-
-            if (response.ok) {
-                saveApiKey(apiKey);
-                document.getElementById("apiKeyModal").style.display = "none";
-                location.reload();
-            } else {
-                const data = await response.json();
-                showError(data.error || "Failed to save API key");
-            }
-        } catch (error) {
-            showError("Error saving API key: " + error.message);
-        } finally {
-            // Reset loading state
-            submitBtn.disabled = false;
-        }
-    }
-
-      function showError(message) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error-message";
-        errorDiv.textContent = message;
-
-        // Remove any existing error messages
-        const existingError = document.querySelector(".error-message");
-        if (existingError) {
-          existingError.remove();
-        }
-
-        // Insert error message after the input
-        const apiKeyInput = document.getElementById("apiKeyInput");
-        apiKeyInput.parentNode.insertBefore(errorDiv, apiKeyInput.nextSibling);
-      }
-
-      // Update the API key check on page load
-      window.addEventListener("DOMContentLoaded", () => {
-        if (!getApiKey()) {
-          document.getElementById("apiKeyModal").style.display = "block";
-        }
-      });
-
-      // Keep the API key check and event listeners for the search input
+      // Keep the event listener for the search input
       document
         .getElementById("question")
         .addEventListener("keypress", function (e) {
