@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSE 100 Lecture Q&A</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+
+      h1 {
+        text-align: center;
+        color: #007bff;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: calc(100% - 22px);
+        padding: 12px;
+        margin: 10px 0;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+        transition: border-color 0.3s ease;
+      }
+
+      input:focus {
+        border-color: #007bff;
+      }
+
+      button {
+        padding: 12px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        background-color: #005bb5;
+      }
+
+      .search-options {
+        margin: 10px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+      }
+
+      .loading {
+        display: none;
+        margin: 20px 0;
+        font-weight: 500;
+      }
+
+      .error {
+        color: #d9534f;
+        display: none;
+        margin: 20px 0;
+        font-weight: bold;
+      }
+
+      .confidence-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+
+      .answer-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .practice-question h3 {
+        margin: 0;
+        color: #0056b3;
+        font-size: 1.1em;
+      }
+
+      .practice-question .question {
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+
+      .practice-question .answer,
+      .practice-question .explanation {
+        margin-bottom: 15px;
+        display: none;
+      }
+
+      iframe {
+        width: 100%;
+        height: 315px;
+        margin-top: 20px;
+        border-radius: 5px;
+      }
+
+      .deep-search-results {
+        margin-top: 20px;
+      }
+
+      .alternative-result {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border-left: 3px solid #007bff;
+      }
+
+      .comprehensive-analysis {
+        background-color: #e3f2fd;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        border-left: 4px solid #1976d2;
+      }
+
+      .comprehensive-analysis h3 {
+        color: #1976d2;
+        margin-top: 0;
+      }
+
+      .lecture-references {
+        margin-top: 20px;
+      }
+
+      .references-toggle {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 500;
+      }
+
+      .references-toggle:hover {
+        background-color: #e9ecef;
+      }
+
+      .references-content {
+        display: none;
+        padding: 10px 0;
+      }
+
+      .references-content.show {
+        display: block;
+      }
+
+      .toggle-icon {
+        transition: transform 0.3s ease;
+      }
+
+      .references-toggle.active .toggle-icon {
+        transform: rotate(180deg);
+      }
+
+      .progress-steps {
+        margin: 15px 0;
+        display: none;
+      }
+
+      .progress-step {
+        padding: 8px;
+        margin: 5px 0;
+        border-radius: 5px;
+        background: #f8f9fa;
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+      }
+
+      .progress-step.active {
+        opacity: 1;
+        background: #e3f2fd;
+        border-left: 3px solid #007bff;
+      }
+
+      /* API Key Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        backdrop-filter: blur(3px);
+      }
+
+      .modal-content {
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-content h2 {
+        margin-top: 0;
+        color: #007bff;
+      }
+
+      #apiKeyInput {
+        width: calc(100% - 24px);
+        padding: 12px;
+        margin: 15px 0;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+
+      #apiKeyInput:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+
+      /* Loading Animation */
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        iframe {
+          height: 200px;
+        }
+      }
+
+      /* Error Message Styling */
+      .error-message {
+        background-color: #fff3f3;
+        border-left: 4px solid #dc3545;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        color: #dc3545;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Data Structures Savior</h1>
+    <style>
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      h3 {
+        margin-top: -5px;
+      }
+    </style>
+    <h3 style="text-align: center; font-size: 1em;">A LLM-powered Search Engine for Advanced Data Structures course at UCSD</h3>
+
+    <!-- Main Search Section -->
+    <div id="qa">
+      <h2>Ask a Question</h2>
+      <input
+        type="text"
+        id="question"
+        placeholder="Ask a question about CSE 100..."
+      />
+      <div class="search-options">
+        <label>
+          <input type="checkbox" id="deep-search" name="deep-search" />
+          Deep Search (Longer time, better results)
+        </label>
+      </div>
+      <button onclick="askQuestion()">Search</button>
+      <div class="progress-steps" id="progress-steps">
+        <div class="progress-step" data-step="1">
+          🔍 Finding relevant lectures and materials...
+        </div>
+        <div class="progress-step" data-step="2">📚 Analyzing content...</div>
+        <div class="progress-step" data-step="3">
+          🤔 Generating comprehensive response...
+        </div>
+        <div class="progress-step" data-step="4">
+          🎥 Preparing video references...
+        </div>
+      </div>
+      <div class="loading" id="loading">
+        <span class="loading-spinner"></span>
+        Searching for answers...
+      </div>
+      <div class="error" id="error"></div>
+      <div class="results" id="results"></div>
+      <iframe
+        id="video"
+        src=""
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="modal">
+      <div class="modal-content">
+        <h2>OpenAI API Key Required</h2>
+        <p>
+          Please enter your OpenAI API key to use this application. Your key
+          will be stored locally.
+        </p>
+        <input
+          type="password"
+          id="apiKeyInput"
+          placeholder="Enter your OpenAI API key"
+        />
+        <button onclick="submitApiKey()" class="submit-btn">Submit</button>
+      </div>
+    </div>
+
+    <script>
+      // Add this at the beginning of your script section
+      const API_BASE_URL = window.location.hostname === 'localhost' 
+          ? 'http://localhost:5000'
+          : 'https://datastructuresavior.onrender.com'; // You'll need to update this with your actual Render URL
+
+      // Add these functions to handle API key storage
+      function saveApiKey(apiKey) {
+          localStorage.setItem('openai_api_key', apiKey);
+      }
+
+      function getApiKey() {
+          return localStorage.getItem('openai_api_key');
+      }
+
+      // Function to handle Q&A search
+      async function askQuestion() {
+        const question = document.getElementById("question").value;
+        const deepSearch = document.getElementById("deep-search").checked;
+        const loading = document.getElementById("loading");
+        const error = document.getElementById("error");
+        const results = document.getElementById("results");
+        const video = document.getElementById("video");
+        const progressSteps = document.getElementById("progress-steps");
+
+        if (!question) {
+          error.textContent = "Please enter a question";
+          error.style.display = "block";
+          return;
+        }
+
+        // Reset and show progress steps
+        loading.style.display = "block";
+        progressSteps.style.display = "block";
+        error.style.display = "none";
+        results.innerHTML = "";
+        video.src = "";
+
+        // Reset all steps
+        document.querySelectorAll(".progress-step").forEach((step) => {
+          step.classList.remove("active");
+        });
+
+        try {
+          // Activate first step
+          updateProgress(1);
+
+          const apiKey = getApiKey();
+          if (!apiKey) {
+            document.getElementById("apiKeyModal").style.display = "block";
+            return;
+          }
+
+          const response = await fetch(`${API_BASE_URL}/api/ask`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-Key": apiKey
+            },
+            body: JSON.stringify({
+              question,
+              deep_search: deepSearch,
+            }),
+          });
+
+          // Simulate progress through steps
+          updateProgress(2);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          updateProgress(3);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Failed to get answer");
+          }
+
+          updateProgress(4);
+
+          let resultsHtml = `<h2>Results for: "${data.question}"</h2>`;
+
+          // Add text result section
+          if (data.text_result) {
+            resultsHtml += `
+                        <h3>From Text: ${data.text_result.title}</h3>
+                        <div class="result">
+                            ${
+                              !data.text_result.is_confident
+                                ? `
+                                <div class="confidence-warning">
+                                    Note: This answer may not be directly addressed in the text.
+                                </div>
+                            `
+                                : ""
+                            }
+                            <div class="answer-box">
+                                ${
+                                  data.text_result.quote
+                                    ? `
+                                    <strong>Quote:</strong><br>
+                                    "${data.text_result.quote}"<br><br>
+                                `
+                                    : ""
+                                }
+                                <strong>Answer:</strong><br>
+                                ${data.text_result.answer}
+                                ${
+                                  data.text_result.url
+                                    ? `
+                                    <p><a href="${data.text_result.url}" target="_blank">Read More (make sure you've logged into Cogniterra)</a></p>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    `;
+          }
+
+          // Add lecture result section
+          if (data.lecture_result) {
+            resultsHtml += `<h3>From Lecture: ${
+              data.lecture_result.title ||
+              "Data Structures vs. Abstract Data Types"
+            }</h3>`;
+            if (data.lecture_result.all_results) {
+              // Deep search results
+              resultsHtml += `
+                            <div class="deep-search-results">
+                                ${
+                                  data.lecture_result.comprehensive_analysis
+                                    ? `
+                                    <div class="comprehensive-analysis">
+                                        <h3>Comprehensive Analysis</h3>
+                                        <p><em>Based on ${data.lecture_result.total_results_processed} relevant lectures</em></p>
+                                        ${data.lecture_result.comprehensive_analysis}
+                                    </div>
+                                `
+                                    : ""
+                                }
+                                
+                                <div class="lecture-references">
+                                    <div class="references-toggle" onclick="toggleReferences(this)">
+                                        <span>Lecture References (${
+                                          data.lecture_result.all_results.length
+                                        })</span>
+                                        <span class="toggle-icon">▼</span>
+                                    </div>
+                                    <div class="references-content">
+                                        <div class="best-result">
+                                            <h4>Primary Reference</h4>
+                                            ${renderLectureResult(
+                                              data.lecture_result.best_result
+                                            )}
+                                        </div>
+                                        
+                                        ${
+                                          data.lecture_result.all_results
+                                            .length > 1
+                                            ? `
+                                            <div class="additional-results">
+                                                <h4>Additional References</h4>
+                                                ${data.lecture_result.all_results
+                                                  .slice(1)
+                                                  .map(
+                                                    (result) =>
+                                                      `<div class="alternative-result">
+                                                        <h4>${result.title}</h4>
+                                                        ${renderLectureResult(
+                                                          result
+                                                        )}
+                                                    </div>`
+                                                  )
+                                                  .join("")}
+                                            </div>
+                                        `
+                                            : ""
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+            } else {
+              // Regular search result
+              resultsHtml += renderLectureResult(data.lecture_result);
+            }
+          }
+
+          results.innerHTML = resultsHtml;
+
+          // Set the embed URL for the iframe if lecture result exists
+          if (data.lecture_result) {
+            if (data.lecture_result.embed_url) {
+              video.src = data.lecture_result.embed_url;
+            } else if (
+              data.lecture_result.best_result &&
+              data.lecture_result.best_result.embed_url
+            ) {
+              video.src = data.lecture_result.best_result.embed_url;
+            }
+          }
+        } catch (err) {
+          error.textContent = err.message;
+          error.style.display = "block";
+        } finally {
+          loading.style.display = "none";
+          // Hide progress steps after a short delay
+          setTimeout(() => {
+            progressSteps.style.display = "none";
+            document.querySelectorAll(".progress-step").forEach((step) => {
+              step.classList.remove("active");
+            });
+          }, 1000);
+        }
+      }
+
+      function renderLectureResult(result) {
+        return `
+                <div class="result">
+                    ${
+                      !result.is_confident
+                        ? `
+                        <div class="confidence-warning">
+                            Note: This answer may not be directly addressed in the lecture video.
+                        </div>
+                    `
+                        : ""
+                    }
+                    <div class="answer-box">
+                        <strong>Answer:</strong><br>
+                        ${result.answer}
+                        ${
+                          result.timestamp
+                            ? `
+                            <p>Timestamp: ${result.timestamp}</p>
+                            <p><a href="${result.url}" target="_blank">Watch on YouTube</a></p>
+                        `
+                            : ""
+                        }
+                    </div>
+                </div>
+            `;
+      }
+
+      function toggleReferences(element) {
+        element.classList.toggle("active");
+        const content = element.nextElementSibling;
+        content.classList.toggle("show");
+      }
+
+      function updateProgress(step) {
+        document.querySelectorAll(".progress-step").forEach((el) => {
+          if (parseInt(el.dataset.step) <= step) {
+            el.classList.add("active");
+          }
+        });
+      }
+
+      // Update submitApiKey function
+      async function submitApiKey() {
+        const apiKey = document.getElementById("apiKeyInput").value.trim();
+        const submitBtn = document.querySelector(".submit-btn");
+        const buttonText = submitBtn.querySelector(".button-text");
+        const spinner = submitBtn.querySelector(".loading-spinner");
+
+        if (!apiKey) {
+          showError("Please enter an API key");
+          return;
+        }
+
+        try {
+          // Show loading state
+          submitBtn.disabled = true;
+          buttonText.style.opacity = "0.5";
+          spinner.style.display = "inline-block";
+
+          const response = await fetch(`${API_BASE_URL}/api/submit-key`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ api_key: apiKey }),
+          });
+
+          if (response.ok) {
+            saveApiKey(apiKey);
+            document.getElementById("apiKeyModal").style.display = "none";
+            location.reload();
+          } else {
+            const data = await response.json();
+            showError(data.error || "Failed to save API key");
+          }
+        } catch (error) {
+          showError("Error saving API key: " + error.message);
+        } finally {
+          // Reset loading state
+          submitBtn.disabled = false;
+          buttonText.style.opacity = "1";
+          spinner.style.display = "none";
+        }
+      }
+
+      function showError(message) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error-message";
+        errorDiv.textContent = message;
+
+        // Remove any existing error messages
+        const existingError = document.querySelector(".error-message");
+        if (existingError) {
+          existingError.remove();
+        }
+
+        // Insert error message after the input
+        const apiKeyInput = document.getElementById("apiKeyInput");
+        apiKeyInput.parentNode.insertBefore(errorDiv, apiKeyInput.nextSibling);
+      }
+
+      // Update the API key check on page load
+      window.addEventListener("DOMContentLoaded", () => {
+        if (!getApiKey()) {
+          document.getElementById("apiKeyModal").style.display = "block";
+        }
+      });
+
+      // Keep the API key check and event listeners for the search input
+      document
+        .getElementById("question")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            askQuestion();
+          }
+        });
+    </script>
+  </body>
+</html>
